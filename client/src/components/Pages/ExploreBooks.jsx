@@ -3,7 +3,6 @@ import styles from "./ExploreBooks.module.css";
 import GenreForm from "../UI/GenreForm";
 import AddBookCard from "../UI/AddBookCard";
 import axios from "axios";
-import CircularProgress from "@material-ui/core/CircularProgress";
 
 const ExploreBooks = () => {
   const [books, setBooks] = useState([]);
