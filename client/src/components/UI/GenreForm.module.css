@@ -1,0 +1,15 @@
+.genreForm {
+  margin-bottom: 20px;
+}
+
+.genreButton {
+  margin: 0 5px;
+}
+
+.selected {
+  background-color: rgb(179, 178, 178);
+}
+
+.selected:hover {
+  background-color: rgb(211, 203, 203);
+}

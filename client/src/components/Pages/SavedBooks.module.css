@@ -1,0 +1,24 @@
+@media screen and (max-width: 600px) {
+  .heading {
+    font-size: 24px;
+  }
+}
+
+.savedBooksSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.heading {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  color: green;
+  margin-bottom: 10px;
+}
+
+.bookCounter {
+  margin-bottom: 20px;
+  font-size: 13px;
+}
