@@ -21,7 +21,9 @@ const ExploreBooks = () => {
         setSelectedGenre(selectedGenre);
       })
       .catch((error) => console.error("Error fetching data: ", error))
-      .finally(()=> {setLoading(false)});
+      .finally(() => {
+        setLoading(false);
+      });
   }, [selectedGenre]);
 
   const handleGenreSelect = (genre) => {
@@ -38,7 +40,7 @@ const ExploreBooks = () => {
         ) : books && books.length > 0 ? (
           books.map((book) => (
             <AddBookCard
-              key={book.key}
+              bookKey={book.key}
               coverId={book.cover_id}
               title={book.title}
               authorName={book.author_name}

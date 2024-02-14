@@ -10,8 +10,6 @@ const cors = require("cors");
 const app = express();
 const port = 8080;
 
-let isLoggedIn = false;
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
@@ -21,8 +19,19 @@ app.use(
     secret: "johnny johnny yes papa",
     resave: false,
     saveUninitialized: true,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 }, 
   })
 );
+
+function isLoggedIn(req, res, next) {
+  console.log("Session:", req.session);
+  if (req.session.user) {
+    next();
+  } else {
+    console.error("Unauthorized access - User not logged in");
+    res.status(401).json({ error: "Unauthorized" });
+  }
+}
 
 async function getBooksRead(userId) {
   const result = await db.query("SELECT * from books_read WHERE user_id = $1", [
@@ -141,23 +150,29 @@ app.post("/delete", async (req, res) => {
   }
 });
 
-app.post("/addToSaved", async (req, res) => {
+app.post("/addToSaved", isLoggedIn, async (req, res) => {
   try {
-    const bookKey = req.body.bookKey;
-    const bookTitle = req.body.bookTitle;
-    const bookAuthor = req.body.bookAuthor;
-    const bookPublishDate = req.body.bookPublishDate;
-    const bookRating = req.body.bookRating;
-    const bookCoverId = req.body.bookCoverId;
+    const {
+      bookKey,
+      bookTitle,
+      bookAuthor,
+      bookPublishDate,
+      bookRating,
+      bookCoverId,
+    } = req.body;
 
+    const userId = req.session.user?.id;
+
+    // Check if the book already exists in the saved list
     const existingBook = await db.query(
       "SELECT * FROM books_read WHERE user_id = $1 AND book_id = $2",
-      [req.session.user?.id, bookKey]
+      [userId, bookKey]
     );
 
     if (existingBook.rows.length === 0) {
+      // If the book does not exist, insert it into the database
       await db.query(
-        "INSERT INTO books_read(book_id, title, author, publish_date, ratings, cover_id, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        "INSERT INTO books_read (book_id, title, author, publish_date, ratings, cover_id, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)",
         [
           bookKey,
           bookTitle,
@@ -165,22 +180,25 @@ app.post("/addToSaved", async (req, res) => {
           bookPublishDate,
           parseFloat(bookRating) || 0,
           bookCoverId,
-          req.session.user?.id,
+          userId,
         ]
       );
-      res.redirect("/savedBooks");
+      res.status(200).json({ success: true, message: "Book added to saved." });
+      console.log("Ye le user id ", userId);
     } else {
-      res.redirect(
-        "/savedBooks?placeholder=Book%20already%20exists.%20Nothing%20was%20inserted."
-      );
+      // If the book already exists, send a message indicating it
+      res.status(400).json({
+        success: false,
+        message: "Book already exists in the saved list.",
+      });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-/////////////////////// Handling Authentication Routes ///////////////////////
+/////////////////// Handling Authentication Routes ///////////////////////
 
 app.get("/register", (req, res) => {
   res.render("register.ejs");
